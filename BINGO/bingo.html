@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bingo</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  
+  /* Este estilo se aplica después del CSS de Bootstrap */
+  .celda { width: 180px; height: 120px; font-size: 1.3rem; cursor: pointer; user-select: none; }
+  td.marcada {
+    background-color: #d3e6cd;
+    font-weight: 700;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 0 8px rgba(84, 88, 92, 0.4);
+  }
+ 
+  
+
+  button.btn-sl {    
+    font-size: 1.1rem;
+    padding: 0.5rem 1.7rem;
+    margin right: 0.10rem;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+    
+    
+  }
+
+</style>
+   
+  
+  
+</head>
+
+<body class="p-3">
+  <div class="container justify-content-center d-flex flex-column align-items-center">
+    <h1 class="h1 mb-3 ">Bingo</h1>
+
+    <div class="container-fluid mb-3 justify-content-center d-flex gap-2">
+      
+      <button id="btnNuevo" class="btn btn-primary  btn-sl">Nuevo</button>
+      <button id="btnLimpiar" class="btn btn-primary  btn-sl">Limpiar</button>
+      <button id="btnVerificar" class="btn btn-primary   btn-sl">Verificar</button>
+    </div>
+
+    	<table id="tablaBingo" class="table table-bordered table-warning text-center align-middle w-auto mx-auto">
+
+      <thead class="table-primary">
+        <tr>
+          <th>B</th><th>I</th><th>N</th><th>G</th><th>O</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td id="cel-0-0" class="celda"></td>
+          <td id="cel-0-1" class="celda"></td>
+          <td id="cel-0-2" class="celda"></td>
+          <td id="cel-0-3" class="celda"></td>
+          <td id="cel-0-4" class="celda"></td>
+          
+        </tr>
+        <tr>
+          <td id="cel-1-0" class="celda"></td>
+          <td id="cel-1-1" class="celda"></td>
+          <td id="cel-1-2" class="celda"></td>
+          <td id="cel-1-3" class="celda"></td>
+          <td id="cel-1-4" class="celda"></td>
+        </tr>
+        <tr>
+          <td id="cel-2-0" class="celda"></td>
+          <td id="cel-2-1" class="celda"></td>
+          <td id="cel-2-2" class="celda"></td>
+          <td id="cel-2-3" class="celda"></td>
+          <td id="cel-2-4" class="celda"></td>
+        </tr>
+        <tr>
+          <td id="cel-3-0" class="celda"></td>
+          <td id="cel-3-1" class="celda"></td>
+          <td id="cel-3-2" class="celda"></td>
+          <td id="cel-3-3" class="celda"></td>
+          <td id="cel-3-4" class="celda"></td>
+        </tr>
+        <tr>
+          <td id="cel-4-0" class="celda"></td>
+          <td id="cel-4-1" class="celda"></td>
+          <td id="cel-4-2" class="celda"></td>
+          <td id="cel-4-3" class="celda"></td>
+          <td id="cel-4-4" class="celda"></td>
+        </tr>
+        
+      </tbody>
+    </table>
+   
+  </div>
+
+  <script>
+    // === LÓGICA ===
+    function randomUnicos(min, max, count) {
+      const s = new Set();
+      while (s.size < count) {
+        s.add(Math.floor(Math.random() * (max - min + 1)) + min);
+      }
+      return Array.from(s).sort((a, b) => a - b);
+    }
+
+    function generarCarton() {
+      // 1) Limpiar texto y marcas de TODAS las celdas 
+      for (let r = 0; r < 5; r++) {
+        for (let c = 0; c < 5; c++) {
+          const td = document.getElementById(`cel-${r}-${c}`);
+          td.textContent = '';
+          td.classList.remove('marcada');
+        }
+      }
+
+      // 2) Rellenar cada columna dentro de su rango (5 números por columna)
+      for (let c = 0; c < 5; c++) {
+        const min = c * 15 + 1; // B:1, I:16, N:31, G:46, O:61
+        const max = min + 14;   // 15,30,45,60,75
+        const nums = randomUnicos(min, max, 5);
+        for (let r = 0; r < 5; r++) {
+          document.getElementById(`cel-${r}-${c}`).textContent = nums[r];
+        }
+      }
+    }
+
+    // Marcar/desmarcar al hacer clic
+    document.getElementById('tablaBingo').addEventListener('click', (e) => {
+      const td = e.target.closest('td');
+      if (!td) return;
+      td.classList.toggle('marcada');
+    });
+
+    // ¿Hay bingo? (filas, columnas, diagonales)
+    function hayBingo() {
+      const sel = Array.from({ length: 5 }, (_, r) =>
+        Array.from({ length: 5 }, (_, c) =>
+          document.getElementById(`cel-${r}-${c}`).classList.contains('marcada')
+        )
+      );
+
+      for (let i = 0; i < 5; i++) {
+        const fila = sel[i].every(Boolean);
+        const col = sel.every(row => row[i]);
+        if (fila || col) return true;
+      }
+      const d1 = [0,1,2,3,4].every(i => sel[i][i]);
+      const d2 = [0,1,2,3,4].every(i => sel[i][4 - i]);
+      return d1 || d2;
+    }
+
+    // Botones
+    document.getElementById('btnNuevo').addEventListener('click', generarCarton);
+    document.getElementById('btnLimpiar').addEventListener('click', () => {
+      for (let r = 0; r < 5; r++) {
+        for (let c = 0; c < 5; c++) {
+          document.getElementById(`cel-${r}-${c}`).classList.remove('marcada');
+        }
+      }
+    });
+    document.getElementById('btnVerificar').addEventListener('click', () => {
+      alert(hayBingo() ? '?? ¡BINGO! Linea completa.' : 'Aún no hay bingo.');
+    });
+
+
+    // Inicial
+    generarCarton();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
